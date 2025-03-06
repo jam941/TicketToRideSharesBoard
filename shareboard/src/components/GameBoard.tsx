@@ -33,13 +33,8 @@ export function GameBoard() {
     };
   });
 
-  const sharesByPlayer = players.map(player => {
-    if(playerShares === undefined) return {
-      player,
-      shares: []
-    }
-    const playerSharesData = playerShares
-      .filter(ps => ps.playerId === player.id)
+  const currentPlayerShares = playerShares
+    ? playerShares.filter(ps => ps.playerId === playerId)
       .map(ps => {
         const shareData = shares.find(s => s.id === ps.shareId);
         return {
@@ -47,13 +42,21 @@ export function GameBoard() {
           label: shareData?.label || '',
           color: shareData?.color || ''
         };
-      });
+      })
+    : [];
+
+  const otherPlayerStats = players.map(player => {
+    if (player.id === playerId) return null;
     
+    const count = playerShares
+      ? playerShares.filter(ps => ps.playerId === player.id).length
+      : 0;
+      
     return {
       player,
-      shares: playerSharesData
+      count
     };
-  });
+  }).filter(Boolean);
 
   const handleShareClick = (shareId: number) => {
     if (loading) return;
@@ -153,39 +156,60 @@ export function GameBoard() {
         </div>
       )}
       
-      {/* Player shares */}
       <div>
-        <h3 className="text-md font-semibold mb-2">Player Shares</h3>
-        <div className="space-y-3">
-          {sharesByPlayer.map(({ player, shares }) => (
-            <div key={player.id} className="border rounded-lg p-3 dark:border-gray-700">
-              <h4 className="font-medium text-sm mb-2">{player.name} {player.id === playerId && '(You)'}</h4>
-              {shares.length === 0 ? (
-                <p className="text-xs text-gray-500 dark:text-gray-400">No shares yet</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {shares.map((share, index) => (
-                    <div 
-                      key={`${share.shareId}-${index}`} 
-                      className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${share.color} text-white`}
-                    >
-                      {share.label}
-                      {player.id === playerId && (
-                        <button
-                          onClick={() => handleRemoveShare(share.shareId, player.id)}
-                          className="ml-1 h-4 w-4 rounded-full bg-white bg-opacity-30 flex items-center justify-center hover:bg-opacity-40"
-                          aria-label="Remove share"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
+        <h3 className="text-md font-semibold mb-2">Your Shares</h3>
+        <div className="border rounded-lg p-3 dark:border-gray-700 mb-4">
+          <h4 className="font-medium text-sm mb-2">
+            {players.find(p => p.id === playerId)?.name || 'You'}
+          </h4>
+          {currentPlayerShares.length === 0 ? (
+            <p className="text-xs text-gray-500 dark:text-gray-400">No shares yet</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {currentPlayerShares.map((share, index) => (
+                <div 
+                  key={`${share.shareId}-${index}`} 
+                  className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${share.color} text-white`}
+                >
+                  {share.label}
+                  <button
+                    onClick={() => handleRemoveShare(share.shareId, playerId!)}
+                    className="ml-1 h-4 w-4 rounded-full bg-white bg-opacity-30 flex items-center justify-center hover:bg-opacity-40"
+                    aria-label="Remove share"
+                  >
+                    ×
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
-          ))}
+          )}
         </div>
+        
+        {otherPlayerStats.length > 0 && (
+          <>
+            <h3 className="text-md font-semibold mb-2">Other Players</h3>
+            <div className="space-y-3">
+              {otherPlayerStats.map((stat: any) => (
+                <div key={stat.player.id} className="border rounded-lg p-3 dark:border-gray-700">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-sm">{stat.player.name}</h4>
+                    <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                      {stat.count} shares
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                      <div 
+                        className="bg-blue-600 h-2.5 rounded-full" 
+                        style={{ width: `${Math.min(100, (stat.count / 20) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

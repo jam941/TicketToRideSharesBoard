@@ -52,19 +52,30 @@ export function PlayerStats() {
               </span>
             </div>
             
-            {sharesByType.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {sharesByType.map(share => (
-                  <div 
-                    key={share.id}
-                    className={`px-2 py-0.5 rounded-full text-xs flex items-center ${share.color} text-white`}
-                  >
-                    {share.label} ({share.count})
-                  </div>
-                ))}
-              </div>
+            {isCurrentPlayer ? (
+              sharesByType.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {sharesByType.map(share => (
+                    <div 
+                      key={share.id}
+                      className={`px-2 py-0.5 rounded-full text-xs flex items-center ${share.color} text-white`}
+                    >
+                      {share.label} ({share.count})
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-gray-400">No shares yet</p>
+              )
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400">No shares yet</p>
+              <div className="flex items-center">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full" 
+                    style={{ width: `${Math.min(100, (totalShares / 20) * 100)}%` }}
+                  ></div>
+                </div>
+              </div>
             )}
           </div>
         ))}
